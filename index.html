@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060608">
+<title>Vault</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,.9,.2,1);
+}
+[data-theme=dark]{
+  --bg:#0b0c0e;
+  --t1:rgba(255,255,255,.96);--t2:rgba(235,235,245,.62);--t3:rgba(235,235,245,.34);
+  --hair:rgba(255,255,255,.10);--hair-strong:rgba(255,255,255,.30);--focus:rgba(255,255,255,.06);
+  --g-bg:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.035) 55%,rgba(255,255,255,.07));
+  --g-blur:10px;--g-edge:rgba(255,255,255,.62);--g-edge2:rgba(255,255,255,.07);--g-sheen:rgba(255,255,255,.10);
+  --g-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(255,255,255,.05),0 1px 1px rgba(0,0,0,.25),0 16px 36px rgba(0,0,0,.42);
+  --inp-bg:rgba(255,255,255,.06);
+  --sheet-bg:linear-gradient(180deg,rgba(30,30,36,.66),rgba(12,12,16,.80));
+  --lens:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.08));
+  --blob1:#3b3e46;--blob2:#2a2d33;--blob3:#46494f;--blob-o:.55;
+  --knob-shadow:0 6px 16px rgba(0,0,0,.55);
+  --inv:#0b0b0f;
+}
+[data-theme=light]{
+  --bg:#eef0f3;
+  --t1:#0c0c11;--t2:rgba(20,20,30,.58);--t3:rgba(20,20,30,.34);
+  --hair:rgba(20,20,40,.08);--hair-strong:rgba(20,20,40,.22);--focus:rgba(20,20,40,.05);
+  --g-bg:linear-gradient(160deg,rgba(255,255,255,.66),rgba(255,255,255,.30) 55%,rgba(255,255,255,.46));
+  --g-blur:12px;--g-edge:#ffffff;--g-edge2:rgba(255,255,255,.35);--g-sheen:rgba(255,255,255,.55);
+  --g-shadow:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.6),0 1px 2px rgba(20,20,50,.06),0 14px 32px rgba(20,20,60,.10);
+  --inp-bg:rgba(255,255,255,.55);
+  --sheet-bg:linear-gradient(180deg,rgba(250,250,252,.80),rgba(238,239,244,.90));
+  --lens:linear-gradient(180deg,#fff,rgba(255,255,255,.75));
+  --blob1:#ffffff;--blob2:#d9dce3;--blob3:#e6e8ec;--blob-o:.9;
+  --knob-shadow:0 6px 16px rgba(30,30,60,.22);
+  --inv:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased;overflow-x:hidden;overscroll-behavior:none;letter-spacing:-.01em;transition:background .4s}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+svg{display:block}
+
+/* ---------- background ---------- */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(165deg,color-mix(in srgb,var(--bg) 82%,#fff) 0%,var(--bg) 45%,color-mix(in srgb,var(--bg) 90%,#000) 100%);pointer-events:none}
+[data-theme=light] .bg{background:linear-gradient(165deg,#f7f8fa 0%,#eceef2 55%,#e2e5ea 100%)}
+.bg i{position:absolute;border-radius:50%;filter:blur(90px);opacity:var(--blob-o);will-change:transform}
+.bg .b1{width:75vmax;height:75vmax;left:-30vmax;top:-35vmax;background:var(--blob1);animation:d1 24s ease-in-out infinite alternate}
+.bg .b2{width:60vmax;height:60vmax;right:-32vmax;top:18vh;background:var(--blob2);animation:d2 28s ease-in-out infinite alternate}
+.bg .b3{width:55vmax;height:55vmax;left:-12vmax;bottom:-38vmax;background:var(--blob3);animation:d3 32s ease-in-out infinite alternate}
+@keyframes d1{to{transform:translate(14vmax,12vmax) scale(1.12)}}
+@keyframes d2{to{transform:translate(-12vmax,-8vmax) scale(.9)}}
+@keyframes d3{to{transform:translate(10vmax,-10vmax) scale(1.08)}}
+
+/* ---------- liquid glass ---------- */
+.glass{position:relative;background:var(--g-bg);-webkit-backdrop-filter:blur(var(--g-blur)) saturate(180%);backdrop-filter:blur(var(--g-blur)) saturate(180%);box-shadow:var(--g-shadow);isolation:isolate}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(145deg,var(--g-edge) 0%,var(--g-edge2) 26%,transparent 50%,var(--g-edge2) 74%,var(--g-edge) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:radial-gradient(120% 70% at 18% 0%,var(--g-sheen),transparent 60%)}
+.prism::before{background:conic-gradient(from 210deg,var(--g-edge) 0%,var(--g-edge2) 16%,rgba(255,214,10,.28) 23%,rgba(100,210,255,.3) 26%,var(--g-edge2) 34%,transparent 50%,var(--g-edge2) 64%,var(--g-edge) 76%,rgba(191,90,242,.22) 82%,var(--g-edge2) 90%,var(--g-edge) 100%)}
+
+/* ---------- layout ---------- */
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;min-height:100vh;
+  padding:calc(env(safe-area-inset-top) + var(--tg-content-safe-area-inset-top,0px) + 22px) 16px calc(env(safe-area-inset-bottom) + 128px)}
+.view>*{animation:rise .6s var(--ease) both;animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3)}
+.h1{font-size:34px;line-height:1.08;font-weight:700;letter-spacing:-.035em}
+.sub{color:var(--t2);font-size:15px;line-height:1.4}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+.sect-title{display:flex;align-items:baseline;justify-content:space-between;margin:28px 4px 12px}
+.sect-title h3{font-size:20px;font-weight:650;letter-spacing:-.02em}
+
+/* header */
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.stats{display:flex;gap:18px;margin-top:14px}
+.stat b{display:block;font-size:22px;font-weight:650;letter-spacing:-.02em}
+.stat span{font-size:12px;color:var(--t3)}
+
+/* circle glass button */
+.cbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;transition:transform .2s var(--ease)}
+.cbtn:active{transform:scale(.9)}
+.cbtn svg{width:20px;height:20px}
+.cbtn.danger{color:#ff453a}
+
+/* capture pill */
+.capture{margin-top:22px;height:60px;border-radius:999px;display:flex;align-items:center;padding:0 8px 0 22px;width:100%;text-align:left;color:var(--t3);font-size:16px;transition:transform .25s var(--ease)}
+.capture:active{transform:scale(.98)}
+.capture .mini{margin-left:auto;width:44px;height:44px;position:relative;flex:none}
+
+/* grid & tiles */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.tile{border-radius:28px;padding:16px;min-height:140px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;transition:transform .25s var(--ease)}
+.tile:active{transform:scale(.965)}
+.tile.wide{grid-column:span 2;min-height:0;gap:14px}
+.tile .n{font-size:15px;font-weight:600;margin-top:10px}
+.tile .m{font-size:12.5px;color:var(--t3);margin-top:3px}
+.tile .cnt{font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ico{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:var(--c);flex:none;background:var(--inp-bg);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.ico svg{width:20px;height:20px;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--c) 55%,transparent))}
+.tile-top{display:flex;justify-content:space-between;align-items:flex-start}
+
+.bar{height:6px;border-radius:6px;background:var(--inp-bg);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair)}
+.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0a84ff,#64d2ff 60%,#bf5af2);box-shadow:0 0 12px rgba(100,210,255,.6);transition:width .6s var(--ease)}
+
+/* lists */
+.group{border-radius:24px;overflow:hidden}
+.li{display:flex;align-items:center;gap:12px;padding:13px 16px;width:100%;text-align:left}
+.li+.li{border-top:1px solid var(--hair)}
+.li .ico{width:32px;height:32px;border-radius:11px}
+.li .ico svg{width:16px;height:16px}
+.li .tt{font-size:15px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.li .dd{font-size:12px;color:var(--t3);margin-top:2px}
+.li .mid{flex:1;min-width:0}
+
+.card{display:block;width:100%;text-align:left;border-radius:24px;padding:16px 16px 14px;margin-bottom:10px;transition:transform .25s var(--ease)}
+.card:active{transform:scale(.98)}
+.card .ct{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.3}
+.card .cb{font-size:15px;color:var(--t2);line-height:1.45;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.card .cf{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--t3)}
+.card .done-t{text-decoration:line-through;color:var(--t3)}
+.lesson{margin-top:12px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,#ff9f0a 12%,transparent);border:1px solid color-mix(in srgb,#ff9f0a 28%,transparent);font-size:14px;line-height:1.4}
+.lesson b{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:#ff9f0a;display:block;margin-bottom:3px;font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--inp-bg);border:1px solid var(--hair);font-size:12px;color:var(--t2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);flex:none}
+.chk{width:28px;height:28px;border-radius:50%;border:1.6px solid var(--t3);display:grid;place-items:center;flex:none;transition:all .25s var(--ease)}
+.chk svg{width:16px;height:16px;opacity:0;color:#fff}
+.chk.on{background:#30d158;border-color:#30d158;box-shadow:0 0 14px rgba(48,209,88,.55)}
+.chk.on svg{opacity:1}
+
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.empty .ico{width:64px;height:64px;border-radius:22px;margin:0 auto 16px}
+.empty .ico svg{width:28px;height:28px}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 15px;border-radius:999px;font-size:14px;background:var(--inp-bg);border:1px solid var(--hair);color:var(--t2);transition:all .2s}
+.chip.on{background:var(--t1);color:var(--inv);border-color:transparent}
+
+.moodstrip{display:flex;gap:3px;height:10px;margin-top:16px;border-radius:6px;overflow:hidden}
+.moodstrip i{flex:1;background:var(--c);opacity:.85}
+
+/* fab */
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:calc(env(safe-area-inset-bottom) + 88px);z-index:20;width:60px;height:60px;border-radius:50%;display:grid;place-items:center}
+.fab svg{width:24px;height:24px}
+.fab:active{transform:scale(.92)}
+
+/* tabbar */
+.tabbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:20;display:flex;gap:4px;padding:6px;border-radius:999px}
+.tab{width:66px;height:48px;border-radius:999px;display:grid;place-items:center;color:var(--t3);position:relative;transition:color .25s}
+.tab svg{width:22px;height:22px;position:relative;z-index:1}
+.tab.on{color:var(--t1)}
+.tab.on::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--lens);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.15)}
+
+/* ---------- siri ring ---------- */
+.siri{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+.siri .halo{position:absolute;inset:-7px;border-radius:50%;background:conic-gradient(#ff2d55,#ff9f0a,#ffd60a,#30d158,#64d2ff,#0a84ff,#bf5af2,#ff2d55);filter:blur(10px);opacity:.8;animation:spin 3.4s linear infinite}
+.siri .ring{position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 90deg,#bf5af2,#0a84ff,#64d2ff,#ffffff,#ffd60a,#ff9f0a,#ff375f,#bf5af2);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));animation:spin 2.3s linear infinite reverse}
+.siri .ring2{position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(transparent 0 62%,rgba(255,255,255,.95) 80%,transparent 92%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));animation:spin 1.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.knob{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;color:#3a3a42;
+  background:radial-gradient(circle at 50% 30%,#ffffff 0%,#f5f5f8 55%,#dcdce3 100%);
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.10),inset 0 2px 2px #fff,var(--knob-shadow)}
+.knob svg{width:24px;height:24px;stroke-width:2.6}
+
+/* ---------- swipe to save ---------- */
+.swipe{height:68px;border-radius:999px;position:relative;overflow:visible;user-select:none;-webkit-user-select:none;touch-action:none}
+.swipe-fill{position:absolute;left:5px;top:5px;bottom:5px;width:58px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(191,90,242,.0),rgba(100,210,255,.22),rgba(255,214,10,.18));opacity:0;transition:opacity .3s}
+.swipe.drag .swipe-fill,.swipe.done .swipe-fill{opacity:1}
+.swipe-label{position:absolute;inset:0;display:grid;place-items:center;padding-left:48px;font-size:17px;font-weight:500;pointer-events:none;
+  background:linear-gradient(90deg,var(--t3) 0%,var(--t3) 38%,var(--t1) 50%,var(--t3) 62%,var(--t3) 100%);background-size:250% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 2.6s linear infinite}
+@keyframes shimmer{from{background-position:125% 0}to{background-position:-125% 0}}
+.knob-wrap{position:absolute;left:5px;top:5px;width:58px;height:58px;touch-action:none;cursor:grab;z-index:2}
+.swipe.drag .knob-wrap{cursor:grabbing}
+.swipe.drag .siri .halo{animation-duration:1.2s;opacity:1}
+.swipe.drag .siri .ring{animation-duration:.9s}
+.swipe.done .siri .halo{animation-duration:.8s;opacity:1;inset:-11px}
+.swipe.done .knob{color:#30d158}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.38);opacity:0;transition:opacity .35s}
+.scrim.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:560px;margin:0 auto;border-radius:34px 34px 0 0;
+  padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:92vh;overflow-y:auto;overscroll-behavior:contain;
+  transform:translateY(105%);transition:transform .5s var(--ease);--g-bg:var(--sheet-bg);--g-blur:26px}
+.sheet.on{transform:none}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--t3);margin:0 auto 12px;opacity:.55}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sh-date{font-size:13px;color:var(--t3);margin-top:4px}
+.sh-foot{margin-top:18px}
+.field{margin-bottom:14px}
+.label{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin:0 4px 8px;display:flex;justify-content:space-between}
+.inp{width:100%;border-radius:18px;padding:14px 16px;font-size:16px;background:var(--inp-bg);border:1px solid var(--hair);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.inp:focus{border-color:var(--hair-strong);box-shadow:0 0 0 4px var(--focus)}
+.inp::placeholder{color:var(--t3)}
+.inp.title{font-size:24px;font-weight:650;letter-spacing:-.025em;background:transparent;border:0;padding:6px 4px;box-shadow:none}
+.inp.body{background:transparent;border:0;padding:4px 4px;min-height:110px;resize:none;line-height:1.5;font-size:17px;box-shadow:none}
+textarea.inp{resize:none;line-height:1.45;min-height:84px}
+select.inp{background-image:none}
+.box{border-radius:22px;padding:14px}
+.switch{position:relative;width:52px;height:32px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.switch i{position:absolute;inset:0;border-radius:999px;background:var(--inp-bg);border:1px solid var(--hair);transition:background .25s}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .3s var(--ease)}
+.switch input:checked+i{background:#30d158}
+.switch input:checked+i::after{transform:translateX(20px)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:8px;background:linear-gradient(90deg,#0a84ff,#64d2ff var(--p),var(--inp-bg) var(--p));box-shadow:inset 0 0 0 1px var(--hair)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#fff,#e4e4ea);box-shadow:0 3px 10px rgba(0,0,0,.35),inset 0 -2px 3px rgba(0,0,0,.08)}
+input[type=range]::-moz-range-track{height:8px;border-radius:8px;background:var(--inp-bg)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:8px;background:#64d2ff}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.moods{display:flex;justify-content:space-between;gap:6px}
+.mood{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--t3);padding:4px 0}
+.mood i{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.85),var(--c) 45%,color-mix(in srgb,var(--c) 60%,#000));opacity:.45;transition:all .3s var(--ease);box-shadow:inset 0 -3px 6px rgba(0,0,0,.2)}
+.mood.on i{opacity:1;transform:scale(1.12);box-shadow:0 0 0 3px var(--bg),0 0 0 4.5px var(--c),0 0 22px var(--c)}
+.mood.on{color:var(--t1)}
+
+/* ---------- lock ---------- */
+.lock{min-height:calc(100vh - 160px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:10px}
+.orb{width:128px;height:128px;position:relative;margin:34px 0 30px}
+.orb-core{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;color:var(--t1)}
+.orb-core svg{width:40px;height:40px;stroke-width:1.6}
+.orb::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px solid var(--hair);pointer-events:none}
+.orb.busy::after{border-color:transparent;border-top-color:var(--t2);animation:spin .9s linear infinite}
+.pwrow{display:flex;gap:10px;align-items:center;width:100%;max-width:380px;margin-top:10px}
+.pw{flex:1;height:60px;border-radius:999px;display:flex;align-items:center;padding:0 8px 0 22px}
+.pw input{flex:1;min-width:0;background:none;border:0;outline:none;font-size:17px;height:100%}
+.pw input::placeholder{color:var(--t3)}
+.pw .eye{width:40px;height:40px;display:grid;place-items:center;color:var(--t3)}
+.pw .eye svg{width:20px;height:20px}
+.go{width:60px;height:60px;position:relative;flex:none;transition:transform .2s var(--ease)}
+.go:active{transform:scale(.92)}
+.go[disabled]{opacity:.6}
+.link{margin-top:26px;color:var(--t2);font-size:15px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--hair-strong)}
+.err{color:#ff453a;font-size:14px;margin-top:14px;min-height:20px}
+.note{margin-top:34px;font-size:12px;color:var(--t3);max-width:320px;line-height:1.5}
+.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* ---------- settings ---------- */
+.set-row{display:flex;align-items:center;gap:12px;padding:14px 16px;width:100%;text-align:left;font-size:16px}
+.set-row+.set-row{border-top:1px solid var(--hair)}
+.set-row .ico{width:32px;height:32px;border-radius:10px}
+.set-row .ico svg{width:17px;height:17px}
+.set-row small{display:block;font-size:12px;color:var(--t3);margin-top:2px}
+.seg{display:flex;padding:4px;border-radius:999px;gap:2px}
+.seg button{flex:1;height:38px;border-radius:999px;font-size:14px;color:var(--t2);position:relative}
+.seg button.on{color:var(--t1);background:var(--lens);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.12)}
+.mono{font-family:var(--mono);font-size:13px}
+.pill-btn{height:52px;border-radius:999px;padding:0 22px;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.pill-btn svg{width:18px;height:18px}
+
+/* toast */
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translate(-50%,-140%);z-index:60;padding:12px 20px;border-radius:999px;font-size:14px;font-weight:500;transition:transform .45s var(--ease);white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
+#toast.on{transform:translate(-50%,0)}
+#toast.err{color:#ff453a}
+
+.searchbar{height:54px;border-radius:999px;display:flex;align-items:center;gap:10px;padding:0 18px;margin-top:18px}
+.searchbar svg{width:20px;height:20px;color:var(--t3);flex:none}
+.searchbar input{flex:1;background:none;border:0;outline:none;font-size:17px;min-width:0}
+.searchbar input::placeholder{color:var(--t3)}
+mark{background:color-mix(in srgb,#ffd60a 40%,transparent);color:inherit;border-radius:4px;padding:0 2px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<div class="bg"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+<div id="app"></div>
+<div id="sheetRoot"></div>
+<div id="toast" class="glass"></div>
+
+<script>
+/* =========================================================
+   SETTINGS — this is the only part you fill in
+   ========================================================= */
+const CONFIG = {
+  SUPABASE_URL: 'https://sukyiuijgfwsrdcgsngu.supabase.co',   // e.g. 'https://abcdefgh.supabase.co'
+  SUPABASE_KEY: 'sb_publishable_eyNFOA5jqktVQghKOJlRTQ_s7B-L1_m',   // Supabase "anon" or "publishable" key
+  APP_SALT: 'xazina-3f9a1c7e52b84d06a9e1c4f7b2d85e30', // DO NOT CHANGE
+  AUTO_LOCK_MIN: 2    // minutes after closing before the app locks
+};
+</script>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Telegram ---------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTg = !!(tg && tg.initData);
+const me = inTg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+const myId = me ? String(me.id) : null;
+if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {} }
+const hap = {
+  t(s){ try{ tg.HapticFeedback.impactOccurred(s||'light'); }catch(e){} },
+  ok(){ try{ tg.HapticFeedback.notificationOccurred('success'); }catch(e){} },
+  err(){ try{ tg.HapticFeedback.notificationOccurred('error'); }catch(e){} },
+  sel(){ try{ tg.HapticFeedback.selectionChanged(); }catch(e){} }
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2));
+const LS = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+const MEM = {};
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const pad = n => String(n).padStart(2,'0');
+const dayKey = t => { const d=new Date(t); return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); };
+function rel(t){
+  const d=new Date(t), n=new Date(), s=(n-d)/1000;
+  if (s<60) return 'just now';
+  if (s<3600) return Math.floor(s/60)+' min ago';
+  const hm = pad(d.getHours())+':'+pad(d.getMinutes());
+  if (dayKey(d)===dayKey(n)) return 'today, '+hm;
+  const y=new Date(n); y.setDate(n.getDate()-1);
+  if (dayKey(d)===dayKey(y)) return 'yesterday, '+hm;
+  return MON[d.getMonth()]+' '+d.getDate()+(d.getFullYear()!==n.getFullYear()?', '+d.getFullYear():'')+' · '+hm;
+}
+const longDate = t => { const d=new Date(t); return WD[d.getDay()]+', '+MON[d.getMonth()]+' '+d.getDate(); };
+function deadlineText(s){
+  if (!s) return '';
+  const d = new Date(s+'T23:59:59'); if (isNaN(d)) return '';
+  const days = Math.ceil((d - new Date())/86400000);
+  const base = MON[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+  if (days<0) return base+' · overdue';
+  if (days===0) return base+' · today';
+  return base+' · '+days+(days===1?' day':' days')+' left';
+}
+function greet(){ const h=new Date().getHours(); return h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':h<22?'Good evening':'Good night'; }
+function streak(E){
+  const days=new Set(E.map(e=>dayKey(e.c))); let s=0; const d=new Date();
+  if(!days.has(dayKey(d))) d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){ s++; d.setDate(d.getDate()-1); }
+  return s;
+}
+const displayName = u => u ? [u.first_name,u.last_name].filter(Boolean).join(' ') : '';
+
+/* ---------- icons ---------- */
+const I = {
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.8"/>',
+  tick:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  bubble:'<path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8c-1.3 0-2.6-.3-3.7-.9L4 20l.9-4.1C4.3 14.7 4 13.4 4 12z"/>',
+  heart:'<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+  bulb:'<path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.4-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
+  lesson:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  sparkle:'<path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z"/><path d="M18.5 15l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/>',
+  home:'<path d="M4 10.8L12 4l8 6.8V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  sliders:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  back:'<path d="M15 5l-7 7 7 7"/>',
+  chev:'<path d="M9.5 5.5L16 12l-6.5 6.5"/>',
+  trash:'<path d="M4.5 7h15M10 7V4.8h4V7M6.5 7l1 12.2h9L17.5 7"/>',
+  lock:'<rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/>',
+  userplus:'<circle cx="10" cy="8" r="4"/><path d="M3 20c0-3.3 3.1-6 7-6s7 2.7 7 6M19 8v6M16 11h6"/>',
+  x:'<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l8.5-8.5M16 7l3 3"/>',
+  cal:'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  shield:'<path d="M12 3l7.5 3v5.5c0 4.7-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.8-7.5-9.5V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>',
+  flame:'<path d="M12 21c3.9 0 6.5-2.6 6.5-6.2 0-4.2-3.6-6.3-4.6-10.3-2.7 1.8-3.8 4.4-3.6 6.6-1.2-.6-2-1.8-2.2-3.3C6.3 9.5 5.5 11.6 5.5 14.8 5.5 18.4 8.1 21 12 21z"/>'
+};
+const ic = (n, sw) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||1.8}" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
+const siri = () => '<div class="siri"><i class="halo"></i><i class="ring"></i><i class="ring2"></i></div>';
+
+/* ---------- content model ---------- */
+const SECTIONS = [
+  {k:'big',     n:'Big goals',           sh:'Big goals', c:'#0a84ff', i:'target'},
+  {k:'small',   n:'Small goals',         sh:'Small goals',c:'#30d158', i:'check'},
+  {k:'thought', n:'Thoughts',            sh:'Thoughts',         c:'#64d2ff', i:'bubble'},
+  {k:'feel',    n:'Feelings',            sh:'Feelings',   c:'#ff375f', i:'heart'},
+  {k:'idea',    n:'Ideas',               sh:'Ideas',        c:'#ffd60a', i:'bulb'},
+  {k:'mistake', n:'Mistakes & lessons',  sh:'Mistakes',         c:'#ff9f0a', i:'lesson'},
+  {k:'thanks',  n:'Gratitude',           sh:'Gratitude',     c:'#bf5af2', i:'sparkle'}
+];
+const SEC = Object.fromEntries(SECTIONS.map((s,i)=>[s.k,{...s,idx:i+1}]));
+const MOODS = [
+  {k:5,n:'Great',c:'#30d158'},{k:4,n:'Good',c:'#64d2ff'},{k:3,n:'Okay',c:'#ffd60a'},
+  {k:2,n:'Hard',c:'#ff9f0a'},{k:1,n:'Bad',c:'#ff375f'}
+];
+const MOOD = Object.fromEntries(MOODS.map(m=>[m.k,m]));
+const IDEA_ST = ['Raw','Developing','Done'];
+
+/* ---------- crypto ---------- */
+const enc = new TextEncoder(), dec = new TextDecoder();
+function b64(u8){ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+function unb64(s){ const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+async function deriveKeys(pw){
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(CONFIG.APP_SALT), iterations:250000, hash:'SHA-256'}, base, 512));
+  const key = await crypto.subtle.importKey('raw', bits.slice(0,32), 'AES-GCM', false, ['encrypt','decrypt']);
+  const id = [...bits.slice(32)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  return {key, id};
+}
+async function encryptJSON(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(JSON.stringify(obj))));
+  const out = new Uint8Array(12+ct.length); out.set(iv); out.set(ct,12);
+  return b64(out);
+}
+async function decryptJSON(key, s){
+  const u = unb64(s);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:u.slice(0,12)}, key, u.slice(12));
+  return JSON.parse(dec.decode(pt));
+}
+
+/* ---------- storage (Supabase or demo) ---------- */
+const REMOTE = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY);
+const Store = {
+  async rpc(fn, args){
+    const k = CONFIG.SUPABASE_KEY;
+    const headers = {'Content-Type':'application/json', apikey:k};
+    if (!k.startsWith('sb_')) headers.Authorization = 'Bearer '+k;
+    let r;
+    try { r = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/rpc/'+fn, {method:'POST', headers, body:JSON.stringify(args)}); }
+    catch(e){ throw new Error('No internet connection'); }
+    const t = await r.text();
+    if (!r.ok){ let m=t; try{ m=JSON.parse(t).message||t; }catch(e){} const err=new Error(m); err.conflict=/conflict/.test(m); err.exists=/exists/.test(m); throw err; }
+    return t ? JSON.parse(t) : null;
+  },
+  async get(id){
+    if (REMOTE) return await this.rpc('get_vault', {p_id:id});
+    const raw = LS.get('xz-v-'+id) || MEM[id]; return raw ? JSON.parse(raw) : null;
+  },
+  async put(id, data, version){
+    if (REMOTE) return await this.rpc('put_vault', {p_id:id, p_data:data, p_version:version});
+    const cur = await this.get(id);
+    if (!cur && version!==0){ const e=new Error('conflict'); e.conflict=true; throw e; }
+    if (cur && version===0){ const e=new Error('exists'); e.exists=true; throw e; }
+    if (cur && cur.version!==version){ const e=new Error('conflict'); e.conflict=true; throw e; }
+    const nv = version+1, raw = JSON.stringify({data, version:nv});
+    MEM[id]=raw; LS.set('xz-v-'+id, raw); return nv;
+  },
+  async del(id, version){
+    if (REMOTE) return await this.rpc('delete_vault', {p_id:id, p_version:version});
+    delete MEM[id]; try{ localStorage.removeItem('xz-v-'+id); }catch(e){}
+  }
+};
+
+/* ---------- state ---------- */
+const S = { key:null, id:null, version:0, vault:null, view:'home', section:null, filter:'all', lockMode:'login', denied:false, sheet:false };
+const E = () => S.vault.entries;
+const isOwner = () => { if (!myId) return true; const m=S.vault.members.find(x=>x.id===myId); return !!(m&&m.owner); };
+
+async function pull(){
+  const row = await Store.get(S.id);
+  if (!row) throw new Error('Data not found');
+  S.vault = await decryptJSON(S.key, row.data); S.version = row.version;
+}
+async function mutate(fn){
+  for (let i=0;i<4;i++){
+    const draft = JSON.parse(JSON.stringify(S.vault)); fn(draft);
+    try{
+      const data = await encryptJSON(S.key, draft);
+      S.version = await Store.put(S.id, data, S.version);
+      S.vault = draft; render(); return true;
+    }catch(e){
+      if (e.conflict){ try{ await pull(); }catch(_){} continue; }
+      toast('Not saved: '+e.message, true); hap.err(); return false;
+    }
+  }
+  toast('Not saved, please try again', true); return false;
+}
+
+/* ---------- theme ---------- */
+function applyTheme(){
+  const pref = LS.get('xz-theme') || 'auto';
+  let t = pref;
+  if (t==='auto') t = (inTg && tg.colorScheme) || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.dataset.theme = t;
+  const bg = t==='dark' ? '#0b0c0e' : '#eef0f3';
+  $('meta[name=theme-color]').setAttribute('content', bg);
+  if (inTg){ try{ tg.setHeaderColor(bg); tg.setBackgroundColor(bg); tg.setBottomBarColor && tg.setBottomBarColor(bg); }catch(e){} }
+}
+applyTheme();
+if (tg) { try{ tg.onEvent('themeChanged', applyTheme); }catch(e){} }
+matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg, err){
+  const t=$('#toast'); t.textContent=msg; t.classList.toggle('err',!!err); t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), 2200);
+}
+function copyText(s){
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(s).catch(()=>fallbackCopy(s));
+  return Promise.resolve(fallbackCopy(s));
+}
+function fallbackCopy(s){ const ta=document.createElement('textarea'); ta.value=s; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); }
+function confirmDlg(msg){
+  return new Promise(r=>{ if (inTg && tg.showConfirm){ try{ tg.showConfirm(msg, ok=>r(!!ok)); return; }catch(e){} } r(window.confirm(msg)); });
+}
+
+/* =========================================================
+   LOCK SCREEN
+   ========================================================= */
+function renderLock(){
+  const create = S.lockMode==='create';
+  app.innerHTML = `
+  <main class="lock view">
+    <div class="eyebrow" style="--i:0">Private · Vault · V.01</div>
+    <div class="orb" id="orb" style="--i:1"><div class="orb-core glass">${ic('lock',1.6)}</div></div>
+    <h1 class="h1" style="--i:2">${create?'New vault':'Vault locked'}</h1>
+    <p class="sub mt8" style="--i:3">${create?'Choose a strong password. If you forget it, your data cannot be recovered.':'Enter your password to continue'}</p>
+    <form id="lockForm" class="mt16" style="width:100%;display:flex;flex-direction:column;align-items:center;--i:4" autocomplete="off">
+      <div class="pwrow">
+        <label class="pw glass prism"><input id="pw1" type="password" placeholder="Password" autocomplete="${create?'new-password':'current-password'}" enterkeyhint="go"><button type="button" class="eye" data-eye aria-label="Show">${ic('eye')}</button></label>
+        ${create?'':`<button class="go" id="goBtn" type="submit" aria-label="Unlock"><span class="knob">${ic('chev')}</span></button>`}
+      </div>
+      ${create?`<div class="pwrow">
+        <label class="pw glass prism"><input id="pw2" type="password" placeholder="Repeat password" autocomplete="new-password" enterkeyhint="go"></label>
+        <button class="go" id="goBtn" type="submit" aria-label="Create"><span class="knob">${ic('chev')}</span></button>
+      </div>`:''}
+      <div class="err" id="lockErr"></div>
+    </form>
+    <button class="link" id="modeBtn" style="--i:5">${create?'I already have a vault — sign in':'Create a new vault'}</button>
+    <p class="note" style="--i:6">${REMOTE?'Your data is encrypted on your device. Only ciphertext is sent to the server.':'Demo mode: no database connected, data stays on this device only.'}</p>
+  </main>`;
+  const f=$('#lockForm'), p1=$('#pw1'), p2=$('#pw2'), errEl=$('#lockErr'), orb=$('#orb'), btn=$('#goBtn');
+  $('[data-eye]').onclick=()=>{ const t=p1.type==='password'?'text':'password'; p1.type=t; if(p2)p2.type=t; };
+  $('#modeBtn').onclick=()=>{ S.lockMode=create?'login':'create'; renderLock(); };
+  f.onsubmit = async e => {
+    e.preventDefault(); errEl.textContent='';
+    const pw=p1.value;
+    const fail=m=>{ errEl.textContent=m; f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); hap.err(); orb.classList.remove('busy'); btn.disabled=false; };
+    if (pw.length<6) return fail('Password must be at least 6 characters');
+    if (create && pw!==p2.value) return fail('Passwords do not match');
+    btn.disabled=true; orb.classList.add('busy'); document.activeElement && document.activeElement.blur();
+    try{ await unlock(pw, create); }
+    catch(e2){ fail(e2.message||'Something went wrong'); }
+  };
+  setTimeout(()=>p1.focus(), 350);
+  updateBack();
+}
+
+async function unlock(pw, create){
+  const {key,id} = await deriveKeys(pw);
+  const row = await Store.get(id);
+  let vault, version;
+  if (create){
+    if (row) throw new Error('A vault with this password already exists — sign in instead');
+    vault = {v:1, created:Date.now(), members: myId?[{id:myId, name:displayName(me)||'Me', owner:true}]:[], entries:[]};
+    version = await Store.put(id, await encryptJSON(key, vault), 0);
+  } else {
+    if (!row) throw new Error('Wrong password');
+    try{ vault = await decryptJSON(key, row.data); }catch(e){ throw new Error('Wrong password'); }
+    version = row.version;
+  }
+  if (myId && vault.members.length && !vault.members.some(m=>m.id===myId)){
+    S.denied = true; render(); return;
+  }
+  Object.assign(S, {key, id, version, vault, view:'home', denied:false});
+  hap.ok();
+  if (myId && !vault.members.length) await mutate(v=>{ v.members.push({id:myId, name:displayName(me)||'Me', owner:true}); });
+  render();
+}
+
+function renderDenied(){
+  app.innerHTML = `
+  <main class="lock view">
+    <div class="eyebrow">Access restricted</div>
+    <div class="orb"><div class="orb-core glass" style="color:#ff453a">${ic('shield',1.6)}</div></div>
+    <h1 class="h1">No access</h1>
+    <p class="sub mt8" style="max-width:320px">The password is correct, but this Telegram account isn’t on the list. The vault owner needs to add the ID below under “Settings → Access”.</p>
+    <button class="glass prism pill-btn mt24" style="max-width:320px" data-act="copyid" data-v="${esc(myId)}"><span class="mono">${esc(myId)}</span>${ic('copy')}</button>
+    <button class="link" data-act="relock">Try again</button>
+  </main>`;
+  updateBack();
+}
+
+function lock(){
+  Object.assign(S, {key:null, id:null, version:0, vault:null, view:'home', denied:false, lockMode:'login'});
+  closeSheet(true); render();
+}
+let hiddenAt=0;
+document.addEventListener('visibilitychange', async ()=>{
+  if (document.hidden){ hiddenAt=Date.now(); return; }
+  if (!S.key) return;
+  if (hiddenAt && Date.now()-hiddenAt > CONFIG.AUTO_LOCK_MIN*60000){ lock(); return; }
+  if (REMOTE && !S.sheet){ try{ await pull(); render(); }catch(e){} }
+});
+
+/* =========================================================
+   MAIN VIEWS
+   ========================================================= */
+function render(){
+  if (!S.key) return S.denied ? renderDenied() : renderLock();
+  let html='';
+  if (S.view==='home') html=vHome();
+  else if (S.view==='section') html=vSection();
+  else if (S.view==='search') html=vSearch();
+  else html=vSettings();
+  app.innerHTML = `<main class="view">${html}</main>${tabbar()}${S.view==='section'?`<button class="fab glass prism" data-act="new" data-v="${S.section}" aria-label="New">${ic('plus',2)}</button>`:''}`;
+  if (S.view==='search') bindSearch();
+  updateBack();
+}
+
+function tabbar(){
+  const t=(k,i,l)=>`<button class="tab ${S.view===k||(k==='home'&&S.view==='section')?'on':''}" data-act="tab" data-v="${k}" aria-label="${l}">${ic(i)}</button>`;
+  return `<nav class="tabbar glass prism">${t('home','home','Home')}${t('search','search','Search')}${t('settings','sliders','Settings')}</nav>`;
+}
+
+function vHome(){
+  const all=E(), n=Date.now();
+  const by = k => all.filter(e=>e.s===k);
+  const last = k => by(k).sort((a,b)=>b.c-a.c)[0];
+  const big=by('big'), small=by('small'), feel=last('feel');
+  const avg = big.length ? Math.round(big.reduce((a,e)=>a+(e.progress||0),0)/big.length) : 0;
+  const topBig = big.filter(e=>(e.progress||0)<100).sort((a,b)=>(b.progress||0)-(a.progress||0))[0];
+  const doneSmall = small.filter(e=>e.done).length;
+  const st = streak(all);
+  const name = me && me.first_name ? ', '+esc(me.first_name) : '';
+  const meta = {
+    small: small.length?`${doneSmall}/${small.length} done`:'Nothing yet',
+    thought: last('thought')?'last: '+rel(last('thought').c):'Nothing yet',
+    feel: feel?`<span class="row" style="gap:6px"><i class="dot" style="--c:${MOOD[feel.mood]?.c||'#888'}"></i>${MOOD[feel.mood]?.n||''} · ${rel(feel.c)}</span>`:'Nothing yet',
+    idea: by('idea').length?`${by('idea').filter(e=>e.status===2).length} brought to life`:'Nothing yet',
+    mistake: by('mistake').length?`${by('mistake').filter(e=>e.lesson).length} lessons learned`:'Nothing yet',
+    thanks: last('thanks')?'last: '+rel(last('thanks').c):'Nothing yet'
+  };
+  const tile = (k,i) => { const s=SEC[k]; return `
+    <button class="tile glass" data-act="sec" data-v="${k}" style="--c:${s.c};--i:${i}">
+      <div class="tile-top"><span class="ico">${ic(s.i)}</span><span class="cnt">${by(k).length}</span></div>
+      <div><div class="n">${s.sh}</div><div class="m">${meta[k]}</div></div>
+    </button>`; };
+  const recent = [...all].sort((a,b)=>(b.u||b.c)-(a.u||a.c)).slice(0,5);
+  return `
+  <div class="head" style="--i:0">
+    <div>
+      <div class="eyebrow">${longDate(n)}</div>
+      <h1 class="h1 mt8">${greet()}${name}</h1>
+    </div>
+  </div>
+  <div class="stats" style="--i:1">
+    <div class="stat"><b>${all.length}</b><span>${all.length===1?'entry':'entries'}</span></div>
+    <div class="stat"><b>${st}</b><span>day streak</span></div>
+    <div class="stat"><b>${avg}%</b><span>goals</span></div>
+  </div>
+  <button class="capture glass prism" data-act="new" data-v="thought" style="--i:2">What’s on your mind?<span class="mini"><span class="knob">${ic('plus',2.4)}</span></span></button>
+  <div class="grid">
+    <button class="tile wide glass" data-act="sec" data-v="big" style="--c:${SEC.big.c};--i:3">
+      <div class="tile-top"><div class="row"><span class="ico">${ic('target')}</span><div><div class="n" style="margin:0">Big goals</div><div class="m">${big.length?big.length+(big.length===1?' goal':' goals')+' · '+avg+'% average':'Write down your biggest dreams here'}</div></div></div><span class="cnt">${big.length}</span></div>
+      ${topBig?`<div><div class="row" style="justify-content:space-between;font-size:14px;margin-bottom:8px"><span style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(topBig.title||'Untitled')}</span><span style="color:var(--t3)">${topBig.progress||0}%</span></div><div class="bar"><i style="width:${topBig.progress||0}%"></i></div></div>`:''}
+    </button>
+    ${['small','thought','feel','idea','mistake','thanks'].map((k,i)=>tile(k,i+4)).join('')}
+  </div>
+  ${recent.length?`
+  <div class="sect-title" style="--i:10"><h3>Recent</h3><span class="eyebrow">${recent.length}</span></div>
+  <div class="group glass" style="--i:11">${recent.map(liRow).join('')}</div>`:''}
+  `;
+}
+
+function liRow(e){
+  const s=SEC[e.s]; const title = e.title || (e.body||'').split('\n')[0] || (e.s==='feel'?MOOD[e.mood]?.n:'') || 'Untitled';
+  return `<button class="li" data-act="open" data-v="${e.id}" style="--c:${s.c}"><span class="ico">${ic(s.i)}</span><div class="mid"><div class="tt">${esc(title)}</div><div class="dd">${s.sh} · ${rel(e.u||e.c)}</div></div><span style="color:var(--t3);width:16px">${ic('chev')}</span></button>`;
+}
+
+function vSection(){
+  const s=SEC[S.section];
+  let list = E().filter(e=>e.s===s.k).sort((a,b)=>b.c-a.c);
+  let extra='';
+  if (s.k==='small'){
+    const f=S.filter;
+    extra = `<div class="chips mt16" style="--i:2">${[['all','All'],['open','Active'],['done','Completed']].map(([k,l])=>`<button class="chip ${f===k?'on':''}" data-act="filter" data-v="${k}">${l}</button>`).join('')}</div>`;
+    if (f==='open') list=list.filter(e=>!e.done); else if (f==='done') list=list.filter(e=>e.done);
+    list.sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  }
+  if (s.k==='idea'){
+    const f=S.filter;
+    extra = `<div class="chips mt16" style="--i:2"><button class="chip ${f==='all'?'on':''}" data-act="filter" data-v="all">All</button>${IDEA_ST.map((l,i)=>`<button class="chip ${f===String(i)?'on':''}" data-act="filter" data-v="${i}">${l}</button>`).join('')}</div>`;
+    if (f!=='all') list=list.filter(e=>String(e.status||0)===f);
+  }
+  if (s.k==='feel' && list.length){
+    const strip=[...list].slice(0,30).reverse();
+    extra = `<div style="--i:2" class="mt16"><div class="eyebrow">Mood map · last ${strip.length}</div><div class="moodstrip">${strip.map(e=>`<i style="--c:${MOOD[e.mood]?.c||'#777'}"></i>`).join('')}</div></div>`;
+  }
+  return `
+  <div class="row" style="--i:0"><button class="cbtn glass" data-act="back" aria-label="Back">${ic('back',2)}</button><div class="sp"></div><span class="eyebrow">Section · ${pad(s.idx)}</span></div>
+  <div class="mt24" style="--i:1;--c:${s.c}"><div class="row"><span class="ico">${ic(s.i)}</span><span class="eyebrow">${E().filter(e=>e.s===s.k).length} entries</span></div><h1 class="h1 mt12">${s.n}</h1></div>
+  ${extra}
+  <div class="mt24">${list.length?list.map((e,i)=>card(e,false,i+3)).join(''):`
+    <div class="empty" style="--i:3;--c:${s.c}"><div class="ico glass">${ic(s.i)}</div><div style="font-size:17px;color:var(--t2);font-weight:500">Nothing here yet</div><div class="mt8" style="font-size:14px">Tap + below to add your first one</div></div>`}
+  </div>`;
+}
+
+function hl(text, q){
+  const t=esc(text); if(!q) return t;
+  const i=text.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return t;
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+}
+
+function card(e, showSec, i, q){
+  const s=SEC[e.s]; const st=`style="--c:${s.c};--i:${i||0}"`;
+  const secTag = showSec?`<span class="tag"><i class="dot"></i>${s.sh}</span>`:'';
+  const foot = `<div class="cf">${secTag}<span>${rel(e.c)}</span>${e.u&&e.u-e.c>60000?'<span>· edited</span>':''}</div>`;
+  const body = e.body?`<div class="cb">${hl(e.body,q)}</div>`:'';
+  if (e.s==='big'){
+    const p=e.progress||0;
+    return `<button class="card glass" data-act="open" data-v="${e.id}" ${st}>
+      <div class="row"><div class="ct" style="flex:1">${hl(e.title||'Untitled',q)}</div><span style="font-size:15px;font-weight:600;color:${p>=100?'#30d158':'var(--t2)'}">${p}%</span></div>
+      ${body}<div class="bar mt12"><i style="width:${p}%"></i></div>
+      <div class="cf">${secTag}${e.deadline?`<span class="row" style="gap:5px"><span style="width:14px">${ic('cal')}</span>${deadlineText(e.deadline)}</span>`:`<span>${rel(e.c)}</span>`}</div></button>`;
+  }
+  if (e.s==='small'){
+    const parent = e.parent && E().find(x=>x.id===e.parent);
+    return `<div class="card glass" data-act="open" data-v="${e.id}" ${st} role="button">
+      <div class="row" style="align-items:flex-start"><button class="chk ${e.done?'on':''}" data-act="toggle" data-v="${e.id}" aria-label="Done">${ic('tick',2.6)}</button>
+      <div style="flex:1;min-width:0;padding-top:2px"><div class="ct ${e.done?'done-t':''}">${hl(e.title||'Untitled',q)}</div>${body}
+      <div class="cf" style="margin-top:10px">${secTag}${parent?`<span class="tag" style="--c:${SEC.big.c}"><i class="dot"></i>${esc(parent.title||'Goal')}</span>`:''}<span>${rel(e.c)}</span></div></div></div></div>`;
+  }
+  if (e.s==='feel'){
+    const m=MOOD[e.mood]||{n:'',c:'#888'};
+    return `<button class="card glass" data-act="open" data-v="${e.id}" ${st}>
+      <div class="row"><i class="dot" style="--c:${m.c};width:12px;height:12px"></i><div class="ct">${m.n}</div></div>${body}${foot}</button>`;
+  }
+  if (e.s==='idea'){
+    const sc=['var(--t3)','#ffd60a','#30d158'][e.status||0];
+    return `<button class="card glass" data-act="open" data-v="${e.id}" ${st}>
+      <div class="row"><div class="ct" style="flex:1">${hl(e.title||'Untitled idea',q)}</div><span class="tag" style="--c:${sc}"><i class="dot"></i>${IDEA_ST[e.status||0]}</span></div>${body}${foot}</button>`;
+  }
+  if (e.s==='mistake'){
+    return `<button class="card glass" data-act="open" data-v="${e.id}" ${st}>
+      <div class="ct">${hl(e.title||'Untitled',q)}</div>${body}${e.lesson?`<div class="lesson"><b>LESSON</b>${hl(e.lesson,q)}</div>`:''}${foot}</button>`;
+  }
+  return `<button class="card glass" data-act="open" data-v="${e.id}" ${st}>
+    ${e.title?`<div class="ct">${hl(e.title,q)}</div>`:''}${e.body?`<div class="cb" style="${e.title?'':'margin-top:0;color:var(--t1);font-size:16px'}">${hl(e.body,q)}</div>`:''}${foot}</button>`;
+}
+
+function vSearch(){
+  return `
+  <div style="--i:0"><div class="eyebrow">Search</div><h1 class="h1 mt8">Find anything</h1></div>
+  <label class="searchbar glass prism" style="--i:1">${ic('search')}<input id="q" type="search" placeholder="Word or phrase…" value="${esc(S.q||'')}" enterkeyhint="search"></label>
+  <div id="results" class="mt24"></div>`;
+}
+function bindSearch(){
+  const inp=$('#q'), out=$('#results');
+  const run=()=>{
+    const q=(S.q=inp.value).trim();
+    if(!q){ out.innerHTML=`<div class="empty"><div class="ico glass" style="--c:var(--t2)">${ic('search')}</div>Searches across all sections</div>`; return; }
+    const ql=q.toLowerCase();
+    const res=E().filter(e=>[e.title,e.body,e.lesson,MOOD[e.mood]?.n].some(v=>v&&String(v).toLowerCase().includes(ql))).sort((a,b)=>b.c-a.c);
+    out.innerHTML = res.length ? `<div class="eyebrow" style="margin:0 4px 12px">${res.length} ${res.length===1?'result':'results'}</div>`+res.map(e=>card(e,true,0,q)).join('') : `<div class="empty">No results for “${esc(q)}”</div>`;
+  };
+  inp.addEventListener('input', run); run();
+}
+
+function vSettings(){
+  const pref=LS.get('xz-theme')||'auto';
+  const owner=isOwner();
+  const members=S.vault.members;
+  return `
+  <div style="--i:0"><div class="eyebrow">Settings</div><h1 class="h1 mt8">Vault</h1></div>
+
+  <div class="sect-title" style="--i:1"><h3>Appearance</h3></div>
+  <div class="seg glass" style="--i:2">${[['auto','Auto'],['dark','Dark'],['light','Light']].map(([k,l])=>`<button class="${pref===k?'on':''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div>
+
+  <div class="sect-title" style="--i:3"><h3>Access</h3><span class="eyebrow">${members.length} ${members.length===1?'person':'people'}</span></div>
+  <div class="group glass" style="--i:4">
+    ${members.length?members.map(m=>`
+      <div class="set-row"><span class="ico" style="--c:${m.owner?'#ffd60a':'#64d2ff'}">${ic(m.owner?'shield':'user')}</span>
+        <div class="sp"><div>${esc(m.name||'Unnamed')}${m.id===myId?' <span style="color:var(--t3)">(you)</span>':''}</div><small class="mono">${esc(m.id)}${m.owner?' · owner':''}</small></div>
+        ${owner&&!m.owner?`<button class="cbtn danger" data-act="rmm" data-v="${esc(m.id)}" aria-label="Remove" style="width:36px;height:36px">${ic('x',2)}</button>`:''}
+      </div>`).join(''):`<div class="set-row"><div class="sp"><small style="font-size:14px">The list fills in when opened inside Telegram</small></div></div>`}
+    ${owner?`<button class="set-row" data-act="addm" style="color:#0a84ff"><span class="ico" style="--c:#0a84ff">${ic('userplus')}</span>Add account</button>`:''}
+  </div>
+  ${myId?`<button class="set-row glass mt12" style="border-radius:20px;--i:5" data-act="copyid" data-v="${esc(myId)}"><span class="ico" style="--c:var(--t2)">${ic('copy')}</span><div class="sp">My Telegram ID<small class="mono">${esc(myId)}</small></div></button>`:''}
+
+  <div class="sect-title" style="--i:6"><h3>Security</h3></div>
+  <div class="group glass" style="--i:7">
+    <button class="set-row" data-act="chpw"><span class="ico" style="--c:#bf5af2">${ic('key')}</span><div class="sp">Change password<small>All accounts will sign in with the new password</small></div></button>
+    <button class="set-row" data-act="backup"><span class="ico" style="--c:#30d158">${ic('copy')}</span><div class="sp">Backup<small>Copy all entries to the clipboard as text</small></div></button>
+    <button class="set-row" data-act="lock"><span class="ico" style="--c:#ff453a">${ic('lock')}</span><div class="sp">Lock now<small>The app also locks itself after ${CONFIG.AUTO_LOCK_MIN} min in the background</small></div></button>
+  </div>
+
+  <p class="note" style="margin:28px auto 0;text-align:center;--i:8">${REMOTE?'Cloud connected · AES-256 encryption':'Demo mode · no database connected'}<br>Vault · V.01</p>`;
+}
+
+/* =========================================================
+   SHEET + EDITOR
+   ========================================================= */
+function openSheet(html, mount){
+  const root=$('#sheetRoot');
+  root.innerHTML=`<div class="scrim"></div><div class="sheet glass" role="dialog">${html}</div>`;
+  const sc=root.querySelector('.scrim'), sh=root.querySelector('.sheet');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sc.classList.add('on'); sh.classList.add('on'); }));
+  sc.onclick=()=>closeSheet();
+  sh.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeSheet());
+  S.sheet=true; mount && mount(sh); updateBack();
+}
+function closeSheet(instant){
+  const root=$('#sheetRoot'), sc=root.querySelector('.scrim'), sh=root.querySelector('.sheet');
+  S.sheet=false; updateBack();
+  if(!sh) return;
+  if(instant){ root.innerHTML=''; return; }
+  sc.classList.remove('on'); sh.classList.remove('on');
+  setTimeout(()=>{ if(!S.sheet) root.innerHTML=''; }, 480);
+}
+
+function swipeHTML(label){
+  return `<div class="swipe glass prism" data-swipe><div class="swipe-fill"></div><span class="swipe-label">${label}</span><div class="knob-wrap">${siri()}<div class="knob">${ic('chev')}</div></div></div>`;
+}
+function bindSwipe(root, onDone){
+  const el=root.querySelector('[data-swipe]'), kw=el.querySelector('.knob-wrap'), lab=el.querySelector('.swipe-label'), fill=el.querySelector('.swipe-fill'), knob=kw.querySelector('.knob');
+  let x=0, start=0, drag=false, max=0, busy=false, lastStep=0;
+  const set=(v,anim)=>{
+    x=v; const tr=anim?'transform .5s var(--ease), width .5s var(--ease)':'none';
+    kw.style.transition=tr; fill.style.transition=anim?'width .5s var(--ease), opacity .3s':'opacity .3s';
+    kw.style.transform=`translateX(${v}px)`; fill.style.width=(v+58)+'px';
+    lab.style.opacity=String(Math.max(0,1-v/(Math.max(1,max)*.55)));
+  };
+  kw.addEventListener('pointerdown', e=>{
+    if(busy) return; drag=true; max=el.clientWidth-kw.offsetWidth-10; start=e.clientX-x;
+    try{ kw.setPointerCapture(e.pointerId); }catch(_){}
+    el.classList.add('drag'); hap.t('light'); document.activeElement && document.activeElement.blur && document.activeElement.blur();
+  });
+  kw.addEventListener('pointermove', e=>{
+    if(!drag) return; const v=Math.min(max,Math.max(0,e.clientX-start)); set(v);
+    const step=Math.floor(v/(max/5)); if(step!==lastStep){ lastStep=step; hap.sel(); }
+  });
+  const end=async()=>{
+    if(!drag) return; drag=false; el.classList.remove('drag');
+    if(x>max*.8){
+      set(max,true); busy=true; el.classList.add('done'); knob.innerHTML=ic('tick',2.6); hap.t('heavy');
+      const ok=await onDone();
+      if(!ok){ busy=false; el.classList.remove('done'); knob.innerHTML=ic('chev'); set(0,true); }
+    } else set(0,true);
+  };
+  kw.addEventListener('pointerup', end); kw.addEventListener('pointercancel', end);
+  set(0);
+}
+
+function autoGrow(t){ t.style.height='auto'; t.style.height=Math.max(t.scrollHeight, 84)+'px'; }
+
+function openEditor(k, entry){
+  const s=SEC[k]; if(!s) return;
+  const isNew=!entry;
+  const d = entry ? JSON.parse(JSON.stringify(entry)) : {s:k, title:'', body:'', progress:0, done:false, status:0, mood:0, lesson:'', parent:'', deadline:''};
+  const bigs=E().filter(e=>e.s==='big');
+  const ph = {
+    big:['Goal name','Why does it matter to you? How will you get there?'],
+    small:['What needs to be done?','Details (optional)'],
+    thought:['Title (optional)','Write what’s on your mind…'],
+    feel:['','What are you feeling, and why?'],
+    idea:['Idea name','Describe the idea…'],
+    mistake:['What went wrong?','How did it happen?'],
+    thanks:['','What are you grateful for today?']
+  }[k];
+  let fields='';
+  if (k==='feel'){
+    fields += `<div class="field"><div class="label">Mood</div><div class="moods">${MOODS.map(m=>`<button type="button" class="mood ${d.mood===m.k?'on':''}" data-mood="${m.k}" style="--c:${m.c}"><i></i>${m.n}</button>`).join('')}</div></div>`;
+  }
+  if (ph[0]) fields += `<input class="inp title" data-f="title" placeholder="${ph[0]}" maxlength="160" value="${esc(d.title)}">`;
+  fields += `<textarea class="inp body" data-f="body" placeholder="${ph[1]}">${esc(d.body)}</textarea>`;
+  if (k==='mistake') fields += `<div class="field mt12"><div class="label" style="color:#ff9f0a">Lesson</div><textarea class="inp" data-f="lesson" placeholder="What will I do differently next time?">${esc(d.lesson)}</textarea></div>`;
+  if (k==='big'){
+    fields += `<div class="box glass mt12"><div class="label" style="margin-top:2px">Progress <span id="pv" style="color:var(--t1);letter-spacing:0">${d.progress||0}%</span></div><input type="range" min="0" max="100" step="5" data-f="progress" value="${d.progress||0}" style="--p:${d.progress||0}%"></div>`;
+    fields += `<div class="field mt12"><div class="label">Deadline</div><input class="inp" type="date" data-f="deadline" value="${esc(d.deadline)}"></div>`;
+  }
+  if (k==='small'){
+    if (bigs.length) fields += `<div class="field mt12"><div class="label">Link to a big goal</div><select class="inp" data-f="parent"><option value="">— not linked —</option>${bigs.map(b=>`<option value="${b.id}" ${d.parent===b.id?'selected':''}>${esc(b.title||'Untitled')}</option>`).join('')}</select></div>`;
+    fields += `<div class="box glass mt12 row"><span class="sp" style="font-size:16px">Done</span><label class="switch"><input type="checkbox" data-f="done" ${d.done?'checked':''}><i></i></label></div>`;
+  }
+  if (k==='idea'){
+    fields += `<div class="field mt12"><div class="label">Status</div><div class="chips">${IDEA_ST.map((l,i)=>`<button type="button" class="chip ${(d.status||0)===i?'on':''}" data-status="${i}">${l}</button>`).join('')}</div></div>`;
+  }
+  const html = `
+    <div class="grab"></div>
+    <div class="sh-head">
+      <div style="--c:${s.c}"><div class="row" style="gap:8px"><i class="dot"></i><span class="eyebrow" style="color:var(--t2)">${s.n}</span></div><div class="sh-date">${isNew?longDate(Date.now()):'Created '+rel(d.c)}</div></div>
+      <div class="row">${isNew?'':`<button class="cbtn glass danger" data-del aria-label="Delete">${ic('trash')}</button>`}<button class="cbtn glass" data-close aria-label="Close">${ic('x',2)}</button></div>
+    </div>
+    ${fields}
+    <div class="sh-foot">${swipeHTML(isNew?'slide to save':'slide to update')}</div>`;
+  openSheet(html, sh=>{
+    sh.querySelectorAll('[data-f]').forEach(el=>{
+      const f=el.dataset.f;
+      const upd=()=>{
+        d[f] = el.type==='checkbox'?el.checked : el.type==='range'?+el.value : el.value;
+        if (el.type==='range'){ el.style.setProperty('--p', el.value+'%'); $('#pv',sh).textContent=el.value+'%'; hap.sel(); }
+        if (el.tagName==='TEXTAREA') autoGrow(el);
+      };
+      el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input', upd);
+      if (el.tagName==='TEXTAREA') setTimeout(()=>autoGrow(el),0);
+    });
+    sh.querySelectorAll('[data-mood]').forEach(b=>b.onclick=()=>{ d.mood=+b.dataset.mood; sh.querySelectorAll('[data-mood]').forEach(x=>x.classList.toggle('on',x===b)); hap.t('medium'); });
+    sh.querySelectorAll('[data-status]').forEach(b=>b.onclick=()=>{ d.status=+b.dataset.status; sh.querySelectorAll('[data-status]').forEach(x=>x.classList.toggle('on',x===b)); hap.sel(); });
+    const del=sh.querySelector('[data-del]');
+    if (del) del.onclick=async()=>{
+      if(!(await confirmDlg('This entry will be permanently deleted. Continue?'))) return;
+      const ok=await mutate(v=>{ v.entries=v.entries.filter(x=>x.id!==d.id); if(d.s==='big') v.entries.forEach(x=>{ if(x.parent===d.id) x.parent=''; }); });
+      if(ok){ closeSheet(); toast('Deleted'); hap.ok(); }
+    };
+    bindSwipe(sh, async ()=>{
+      d.title=(d.title||'').trim(); d.body=(d.body||'').trim(); d.lesson=(d.lesson||'').trim();
+      if (k==='feel' && !d.mood){ toast('Pick a mood first', true); hap.err(); return false; }
+      if (k!=='feel' && !d.title && !d.body){ toast('Write something first', true); hap.err(); return false; }
+      if (!d.id){ d.id=uid(); d.c=Date.now(); }
+      d.u=Date.now(); d.by=myId||null;
+      if (k==='big') d.progress=Math.max(0,Math.min(100,+d.progress||0));
+      const ok=await mutate(v=>{ const i=v.entries.findIndex(x=>x.id===d.id); if(i>=0) v.entries[i]=d; else v.entries.push(d); });
+      if (ok){ hap.ok(); toast(isNew?'Saved':'Updated'); setTimeout(()=>closeSheet(),350); }
+      return ok;
+    });
+    if (isNew){ const first=sh.querySelector('.inp.title')||sh.querySelector('.inp.body'); if(first && k!=='feel') setTimeout(()=>first.focus(),450); }
+  });
+}
+
+function openAddMember(){
+  const html=`
+    <div class="grab"></div>
+    <div class="sh-head"><div><span class="eyebrow" style="color:var(--t2)">Access</span><div class="sh-date">Add a second account</div></div><button class="cbtn glass" data-close>${ic('x',2)}</button></div>
+    <p class="sub" style="margin:4px 4px 16px;font-size:14px">Open the bot from the second account and enter the password. Type the ID it shows here.</p>
+    <div class="field"><div class="label">Telegram ID</div><input class="inp mono" id="mId" inputmode="numeric" placeholder="123456789" style="font-size:17px"></div>
+    <div class="field"><div class="label">Name</div><input class="inp" id="mName" placeholder="e.g. Second account" maxlength="40"></div>
+    <div class="sh-foot">${swipeHTML('slide to add')}</div>`;
+  openSheet(html, sh=>{
+    bindSwipe(sh, async ()=>{
+      const id=$('#mId',sh).value.replace(/\D/g,''), name=$('#mName',sh).value.trim()||'Second account';
+      if(id.length<5){ toast('Enter a valid ID', true); hap.err(); return false; }
+      if(S.vault.members.some(m=>m.id===id)){ toast('This account is already added', true); return false; }
+      const ok=await mutate(v=>{ v.members.push({id, name, owner:false, added:Date.now()}); });
+      if(ok){ hap.ok(); toast('Added'); setTimeout(()=>closeSheet(),350); }
+      return ok;
+    });
+  });
+}
+
+function openChangePw(){
+  const html=`
+    <div class="grab"></div>
+    <div class="sh-head"><div><span class="eyebrow" style="color:var(--t2)">Security</span><div class="sh-date">New password</div></div><button class="cbtn glass" data-close>${ic('x',2)}</button></div>
+    <p class="sub" style="margin:4px 4px 16px;font-size:14px">All entries will be re-encrypted with the new password. The second account will also use the new password.</p>
+    <div class="field"><div class="label">New password</div><input class="inp" id="np1" type="password" autocomplete="new-password"></div>
+    <div class="field"><div class="label">Repeat</div><input class="inp" id="np2" type="password" autocomplete="new-password"></div>
+    <div class="sh-foot">${swipeHTML('slide to change')}</div>`;
+  openSheet(html, sh=>{
+    bindSwipe(sh, async ()=>{
+      const a=$('#np1',sh).value, b=$('#np2',sh).value;
+      if(a.length<6){ toast('At least 6 characters', true); hap.err(); return false; }
+      if(a!==b){ toast('Passwords do not match', true); hap.err(); return false; }
+      try{
+        const {key,id}=await deriveKeys(a);
+        if(id===S.id){ toast('That’s your current password', true); return false; }
+        if(await Store.get(id)){ toast('This password can’t be used', true); return false; }
+        await pull();
+        const nv=await Store.put(id, await encryptJSON(key, S.vault), 0);
+        try{ await Store.del(S.id, S.version); }catch(e){}
+        Object.assign(S,{key,id,version:nv});
+        hap.ok(); toast('Password changed'); setTimeout(()=>closeSheet(),350); return true;
+      }catch(e){ toast('Error: '+e.message, true); return false; }
+    });
+  });
+}
+
+/* ---------- navigation ---------- */
+function goBack(){
+  if (S.sheet) return closeSheet();
+  if (S.key && S.view!=='home'){ S.view='home'; render(); window.scrollTo(0,0); }
+}
+function updateBack(){
+  if(!inTg || !tg.BackButton) return;
+  try{ (S.sheet || (S.key && S.view!=='home')) ? tg.BackButton.show() : tg.BackButton.hide(); }catch(e){}
+}
+if (inTg && tg.BackButton){ try{ tg.BackButton.onClick(goBack); }catch(e){} }
+
+document.addEventListener('click', async e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act, v=b.dataset.v;
+  switch(a){
+    case 'tab': if(S.view!==v){ S.view=v; hap.sel(); render(); window.scrollTo(0,0); } break;
+    case 'sec': S.section=v; S.filter='all'; S.view='section'; hap.t(); render(); window.scrollTo(0,0); break;
+    case 'back': goBack(); break;
+    case 'new': hap.t(); openEditor(v||S.section); break;
+    case 'open': { const en=E().find(x=>x.id===v); if(en){ hap.t(); openEditor(en.s,en); } break; }
+    case 'toggle': e.stopPropagation(); hap.t('medium'); mutate(d=>{ const x=d.entries.find(y=>y.id===v); if(x){ x.done=!x.done; x.u=Date.now(); } }); break;
+    case 'filter': S.filter=v; hap.sel(); render(); break;
+    case 'theme': LS.set('xz-theme',v); applyTheme(); hap.sel(); render(); break;
+    case 'lock': hap.t('medium'); lock(); break;
+    case 'relock': lock(); break;
+    case 'chpw': openChangePw(); break;
+    case 'addm': openAddMember(); break;
+    case 'rmm': {
+      const m=S.vault.members.find(x=>x.id===v);
+      if(await confirmDlg(`Remove access for ${m?m.name:'this account'}?`)){
+        if(await mutate(d=>{ d.members=d.members.filter(x=>x.id!==v); })) toast('Removed');
+      } break; }
+    case 'backup': copyText(JSON.stringify({exported:new Date().toISOString(), entries:S.vault.entries}, null, 2)).then(()=>{ hap.ok(); toast('Backup copied to clipboard'); }); break;
+    case 'copyid': copyText(v).then(()=>{ hap.ok(); toast('ID copied'); }); break;
+  }
+});
+
+render();
+})();
+</script>
+</body>
+</html>
